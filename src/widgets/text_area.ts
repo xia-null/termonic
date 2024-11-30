@@ -72,6 +72,10 @@ export class TextArea extends Box {
     let readData = ''
 
     return new Promise((resolve): void => {
+      if (this.stopReadingCb !== null) {
+        this.stopReadingCb(readData)
+      }
+
       this.stopReadingCb = (data?: string): void => {
         this.stopReadingCb = null
         this.ui.off('key', keypressEventHandler)

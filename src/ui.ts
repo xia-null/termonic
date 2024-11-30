@@ -68,6 +68,10 @@ export class UI extends EventEmitter {
             this.write(ANSI_HIDE_CURSOR)
           }
         }
+
+        for (const widget of widgetsToBlur) {
+          widget.blur()
+        }
       } else if (name === TerminalMouseEventName.MouseLeftButtonReleased) {
         for (const widget of this.clickedWidgets) {
           widget.onClickEnd(data)
