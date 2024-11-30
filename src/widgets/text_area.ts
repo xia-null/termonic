@@ -1,3 +1,5 @@
+// eslint-disable no-control-regex
+
 import os from 'os'
 import readline from 'readline'
 
@@ -131,8 +133,6 @@ export class TextArea extends Box {
           }
 
           // See https://github.com/xia-null/reblessed/blob/master/src/lib/widgets/textarea.js#L247
-          // eslint-disable-next-line no-control-regex
-          // @ts-expect-error TODO: fix
         } else if (ch && !/^[\x00-\x08\x0b-\x0c\x0e-\x1f\x7f]$/.test(ch)) {
           const lastContentLine = this.content.split(EOL).pop() ?? ''
 

@@ -128,7 +128,7 @@ export abstract class Widget extends EventEmitter {
 
   onHoverStart(data: TerminalMouseEvent): void {
     this._isHovered = true
-    this.emit('hover:start', data)
+    this.emit('hover', data)
   }
 
   onClickEnd(data: TerminalMouseEvent): void {
@@ -139,7 +139,7 @@ export abstract class Widget extends EventEmitter {
   onClickStart(data: TerminalMouseEvent): void {
     this._isClicked = true
     this.focus()
-    this.emit('click:start', data)
+    this.emit('click', data)
   }
 
   get borderColor(): string {

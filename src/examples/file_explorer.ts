@@ -34,7 +34,7 @@ const run = async (): Promise<void> => {
     x: process.stdout.columns - closeButton.width - 2
   }
 
-  closeButton.once('click:start', (): void => {
+  closeButton.once('click', (): void => {
     ui.clear()
     ui.moveCursor()
 

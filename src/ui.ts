@@ -163,6 +163,10 @@ export class UI extends EventEmitter {
   }
 
   removeWidget(widget: Widget): void {
+    if (widget.isFocused) {
+      widget.blur()
+    }
+
     this.widgets = this.widgets.filter((w: Widget): boolean => w !== widget)
   }
 
@@ -195,5 +199,11 @@ export class UI extends EventEmitter {
 
   get color(): string | null {
     return this.currentColor
+  }
+
+  removeAllWidgets(): void {
+    this.widgets.forEach((widget: Widget): void => {
+      this.removeWidget(widget)
+    })
   }
 }
