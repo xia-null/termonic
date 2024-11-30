@@ -3,20 +3,29 @@ import { EventEmitter } from 'events'
 import { terminal } from 'terminal-kit'
 
 import { Widget } from './widget'
-import { ANSI_CLEAR_SCREEN, ANSI_CURSOR_POSITION, ANSI_HIDE_CURSOR, ANSI_SHOW_CURSOR } from './ansi'
+import { ANSI_CLEAR_SCREEN, ANSI_CURSOR_POSITION, ANSI_HIDE_CURSOR, ANSI_SHOW_CURSOR, ANSI_WHITE } from './ansi'
 import { type TerminalMouseEvent, type TerminalKeyEvent, TerminalMouseEventName, type Position } from './types'
 
 const { EOL } = os
 
 export class UI extends EventEmitter {
   protected widgets: Widget[] = []
+  protected hoveredWidgets: Widget[] = []
+
+  protected currentColor: string
 
   constructor(protected stream: NodeJS.WriteStream) {
     super()
 
+    this.currentColor = ANSI_WHITE
+    this.write(this.currentColor)
+
     terminal.grabInput({ mouse: 'motion' })
     terminal.on('key', (name: string, matches: string[], data: TerminalKeyEvent): void => {
       if (name === 'CTRL_C') {
+        this.write(ANSI_CLEAR_SCREEN)
+        this.moveCursor()
+
         process.exit(0)
       }
 
@@ -47,6 +56,20 @@ export class UI extends EventEmitter {
           widgetToFocus.focus()
         } else {
           this.write(ANSI_HIDE_CURSOR)
+        }
+      } else if (name === TerminalMouseEventName.MouseMotion) {
+        for (const widget of this.widgets) {
+          if (widget.contains({ x, y })) {
+            widget.onHover(data)
+
+            if (!this.hoveredWidgets.includes(widget)) {
+              this.hoveredWidgets.push(widget)
+              widget.onHoverStart(data)
+            }
+          } else if (this.hoveredWidgets.includes(widget)) {
+            this.hoveredWidgets = this.hoveredWidgets.filter((w: Widget): boolean => w !== widget)
+            widget.onHoverEnd(data)
+          }
         }
       }
 
@@ -103,6 +126,19 @@ export class UI extends EventEmitter {
     if (typeof focusedWidget === 'undefined') {
       this.write(ANSI_HIDE_CURSOR)
     }
+  }
+
+  set color(currentColor: string) {
+    if (this.currentColor === currentColor) {
+      return
+    }
+
+    this.currentColor = currentColor
+    this.write(currentColor)
+  }
+
+  get color(): string {
+    return this.currentColor
   }
 }
 

@@ -3,7 +3,7 @@ import readline from 'readline'
 
 import { Box, type BoxArgs } from './box'
 import { TerminalKeyEvent } from '../types'
-import { ANSI_RED, ANSI_WHITE } from '../ansi'
+import { ANSI_BLUE, ANSI_WHITE } from '../ansi'
 
 export interface TextAreaArgs extends BoxArgs {
   terminationKeyNames?: string[]
@@ -13,12 +13,12 @@ export type TextAreaReadCallback = (name: string, matches: string[], data: Termi
 
 readline.emitKeypressEvents(process.stdin)
 
-const { EOL } = os
-const DEFAULT_TERMINATION_KEY_NAMES: string[] = [
+export const DEFAULT_TERMINATION_KEY_NAMES: string[] = [
   'CTRL_C',
   'ESCAPE',
 ]
 
+const { EOL } = os
 const { stdin } = process
 
 export class TextArea extends Box {
@@ -32,16 +32,6 @@ export class TextArea extends Box {
     const { terminationKeyNames } = args
 
     this.terminationKeyNames = terminationKeyNames ?? DEFAULT_TERMINATION_KEY_NAMES
-  }
-
-  render(): void {
-    if (this.isFocused) {
-      this.ui.write(ANSI_RED)
-    } else {
-      this.ui.write(ANSI_WHITE)
-    }
-
-    super.render()
   }
 
   focus(): void {
@@ -156,5 +146,9 @@ export class TextArea extends Box {
 
       this.ui.on('key', keypressEventHandler)
     })
+  }
+
+  get borderColor(): string {
+    return this.isFocused ? ANSI_BLUE : ANSI_WHITE
   }
 }

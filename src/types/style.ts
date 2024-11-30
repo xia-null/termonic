@@ -8,5 +8,8 @@ export enum TextAlign {
 }
 
 export interface Style {
+  color?: string
+  borderColor?: string
   textAlign?: TextAlign
+  backgroundColor?: string
 }

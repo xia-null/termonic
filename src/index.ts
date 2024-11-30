@@ -1,12 +1,18 @@
 import fs from 'fs'
 
 import { UI } from './ui'
-import { TextArea, Box } from './widgets'
+import { Button, TextArea, Box } from './widgets'
 
 const README = fs.readFileSync('/home/f3rno64/.src/github/xia-null/termonic/README.md', 'utf-8')
 
 const run = async (): Promise<void> => {
   const ui = new UI(process.stdout)
+
+  new Button({
+    ui,
+    content: 'Press Me',
+    position: { x: 10, y: 25 },
+  })
 
   new Box({
     ui,
