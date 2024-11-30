@@ -4,14 +4,13 @@ import { terminal } from 'terminal-kit'
 
 import { Box } from './widgets'
 import { Widget } from './widget'
-import { COLORS } from './colors'
 import { ANSI_CLEAR_SCREEN, ANSI_CURSOR_POSITION, ANSI_HIDE_CURSOR, ANSI_SHOW_CURSOR } from './ansi'
 import { type TerminalMouseEvent, type TerminalKeyEvent, TerminalMouseEventName, type Position } from './types'
 
 const { EOL } = os
 
 export class UI extends EventEmitter {
-  protected currentColor: string = COLORS.COLOR_224
+  protected currentColor: string | null = null
 
   protected widgets: Widget[] = []
   protected hoveredWidgets: Widget[] = []
@@ -47,7 +46,7 @@ export class UI extends EventEmitter {
           if (widget.contains({ x, y })) {
             widgetToFocus = widget
 
-            if (!widgetsToClick.includes(widget)) {
+            if (!widgetsToClick.includes(widget) && !this.clickedWidgets.includes(widget)) {
               widgetsToClick.push(widget)
             }
           } else if (widget.isFocused) {
@@ -61,34 +60,27 @@ export class UI extends EventEmitter {
           this.clickedWidgets.push(widget)
         }
 
-        for (const widget of this.clickedWidgets) {
-          if (!widget.contains({ x, y})) {
-            widget.onClickEnd(data)
-
-            this.clickedWidgets = this.clickedWidgets.filter((w: Widget): boolean => w !== widget)
+        if (!this.clickedWidgets.includes(widgetToFocus as Widget)) {
+          if (widgetToFocus !== null) {
+            this.write(ANSI_SHOW_CURSOR)
+            widgetToFocus.focus()
+          } else {
+            this.write(ANSI_HIDE_CURSOR)
           }
         }
-
-        for (const widget of widgetsToBlur) {
-          widget.blur()
+      } else if (name === TerminalMouseEventName.MouseLeftButtonReleased) {
+        for (const widget of this.clickedWidgets) {
+          widget.onClickEnd(data)
         }
 
-        if (widgetToFocus !== null) {
-          this.write(ANSI_SHOW_CURSOR)
-          widgetToFocus.focus()
-        } else {
-          this.write(ANSI_HIDE_CURSOR)
-        }
+        this.clickedWidgets = []
       } else if (name === TerminalMouseEventName.MouseMotion) {
         for (const widget of this.widgets) {
-          if (widget.contains({ x, y })) {
+          const widgetIsTarget = widget.contains({ x, y })
 
-            if (!this.hoveredWidgets.includes(widget)) {
-              this.hoveredWidgets.push(widget)
-              widget.onHoverStart(data)
-            }
-          } else if (this.hoveredWidgets.includes(widget)) {
-            this.hoveredWidgets = this.hoveredWidgets.filter((w: Widget): boolean => w !== widget)
+          if (widgetIsTarget && !widget.isHovered) {
+            widget.onHoverStart(data)
+          } else if (!widgetIsTarget && widget.isHovered && !this.clickedWidgets.includes(widget)) {
             widget.onHoverEnd(data)
           }
         }
@@ -106,9 +98,6 @@ export class UI extends EventEmitter {
       width: logBoxWidth,
       height: logBoxHeight,
     })
-
-    this.log('test 1')
-    this.log('test 2')
   }
 
   write(content: string): void {
@@ -170,15 +159,12 @@ export class UI extends EventEmitter {
   }
 
   set color(currentColor: string) {
-    if (this.currentColor === currentColor) {
-      return
-    }
-
+    // TODO: Get rid of currentColor
     this.currentColor = currentColor
     this.write(currentColor)
   }
 
-  get color(): string {
+  get color(): string | null {
     return this.currentColor
   }
 }

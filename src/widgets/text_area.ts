@@ -1,7 +1,7 @@
 import os from 'os'
 import readline from 'readline'
 
-import { COLORS } from '../colors'
+import { color } from '../utils'
 import { Box, type BoxArgs } from './box'
 import { TerminalKeyEvent } from '../types'
 
@@ -149,10 +149,10 @@ export class TextArea extends Box {
   }
 
   get borderColor(): string {
-    return this.isFocused ? COLORS.COLOR_40 : COLORS.COLOR_8
+    return this.isFocused ? color(0, 128, 0) : color(128, 128, 128)
   }
 
   get color(): string {
-    return this.isFocused ? COLORS.COLOR_255 : COLORS.COLOR_8
+    return this.isFocused ? color(254, 254, 254) : color(128, 128, 128)
   }
 }

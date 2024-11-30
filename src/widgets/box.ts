@@ -1,10 +1,9 @@
 import os from 'os'
 import _merge from 'lodash/merge'
 
-import { COLORS } from '../colors'
-import { padding } from '../utils'
+import { color, padding } from '../utils'
 import { TextAlign, type Position } from '../types'
-import { Widget, type WidgetRenderableContent, type WidgetArgs, type WidgetRenderableContentColor } from '../widget'
+import { Widget, type WidgetArgs } from '../widget'
 
 export interface BoxArgs extends WidgetArgs {
   content?: string
@@ -13,9 +12,9 @@ export interface BoxArgs extends WidgetArgs {
 const { EOL } = os
 
 export const DEFAULT_BOX_CONTENT = ''
-export const DEFAULT_BOX_COLOR = COLORS.COLOR_224
-export const DEFAULT_BOX_BORDER_COLOR = COLORS.COLOR_14
-export const DEFAULT_BOX_BACKGROUND_COLOR = COLORS.COLOR_16
+export const DEFAULT_BOX_COLOR = color(254, 254, 254)
+export const DEFAULT_BOX_BORDER_COLOR = color(254, 0, 0)
+export const DEFAULT_BOX_BACKGROUND_COLOR = color(0, 0, 0)
 
 export class Box extends Widget {
   private _content: string
@@ -40,17 +39,14 @@ export class Box extends Widget {
     this._content = content || DEFAULT_BOX_CONTENT
   }
 
-  get renderableContent(): WidgetRenderableContent {
+  get renderableContent(): string[] {
     const lines: string[] = []
-    const colors: WidgetRenderableContentColor[] = []
 
     const visibleContentLines = this.visibleContentLines()
 
     for (let i = 0; i < this.height; i += 1) {
       if (i === 0 || i === this.height - 1) {
         lines.push('─'.repeat(this.width))
-
-        colors.push(this.borderColor)
       } else {
         const content = visibleContentLines[i - 1] ?? ''
 
@@ -60,38 +56,19 @@ export class Box extends Widget {
           const paddingRight = padding(paddingWidth, true)
 
           lines.push(`|${paddingLeft.length > 0 ? paddingLeft : ''}${content}${paddingRight.length > 0 ? paddingRight : ''}|`)
-          colors.push([
-            this.borderColor,
-            ...(paddingLeft.length > 0 ? [[paddingLeft.length, this.backgroundColor]] : []) as any,
-            ...(content.length > 0 ? [[content.length, this.color]] : []) as any,
-            ...(paddingRight.length > 0 ? [[paddingRight.length, this.backgroundColor]] : []) as any,
-            this.borderColor,
-          ])
         } else if (this.style.textAlign === TextAlign.Right) {
           const p = padding(this.width - content.length - 2)
 
           lines.push(`|${p}${content}|`)
-          colors.push([
-            this.borderColor,
-            ...(p.length > 0 ? [[p.length, this.backgroundColor]] : []) as any,
-            ...(content.length > 0 ? [[content.length, this.color]] : []) as any,
-            this.borderColor,
-          ])
         } else {
           const p = padding(this.width - content.length - 2)
 
           lines.push(`|${content}${p}|`)
-          colors.push([
-            this.borderColor,
-            ...(content.length > 0 ? [[content.length, this.color]] : []) as any,
-            ...(p.length > 0 ? [[p.length, this.backgroundColor]] : []) as any,
-            this.borderColor,
-          ])
         }
       }
     }
 
-    return { lines, colors }
+    return lines
   }
 
   get contentWidth(): number {
@@ -120,7 +97,7 @@ export class Box extends Widget {
     const scrollY = Math.min(this.contentHeight, rawScrollY)
 
     const allContentLines = this._content.split(EOL)
-    const contentLines = allContentLines.slice(scrollY, Math.min(allContentLines.length - 1, scrollY + this.contentHeight))
+    const contentLines = allContentLines.slice(scrollY, Math.min(allContentLines.length, scrollY + this.contentHeight))
 
     return contentLines.map((line: string): string => {
       const trimmedLine = line.trimEnd()
@@ -132,5 +109,14 @@ export class Box extends Widget {
         return `${padding(scrollX)}${visibileTrimmedLine}`
       }
     })
+  }
+
+  isBorder(x: number, y: number): boolean {
+    return (
+      x === 0 ||
+      x === this.width - 1 ||
+      y === 0 ||
+      y === this.height - 1
+    )
   }
 }

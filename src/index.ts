@@ -14,7 +14,7 @@ const run = async (): Promise<void> => {
     width: 50,
     height: 30,
     content: README,
-    position: { x: 0, y: 0 },
+    position: { x: 0, y: 1 },
   })
 
   new Button({
