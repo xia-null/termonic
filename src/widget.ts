@@ -2,8 +2,9 @@ import _merge from 'lodash/merge'
 import { EventEmitter } from 'events'
 
 import { UI } from './ui'
+import { COLORS } from './colors'
+import { ANSI_RESTORE_CURSOR_POSITION, ANSI_SAVE_CURSOR_POSITION } from './ansi'
 import { type Position, type Style, TerminalMouseEvent, TextAlign } from './types'
-import { ANSI_BLACK, ANSI_RESTORE_CURSOR_POSITION, ANSI_SAVE_CURSOR_POSITION, ANSI_WHITE } from './ansi'
 
 export type WidgetRenderableContentColor = string | (string | [number, string])[]
 
@@ -27,10 +28,10 @@ export const DEFAULT_POSITION = {
   y: 0,
 }
 
-export const DEFAULT_COLOR = ANSI_WHITE
-export const DEFAULT_BORDER_COLOR = ANSI_WHITE
+export const DEFAULT_COLOR = COLORS.COLOR_255
+export const DEFAULT_BORDER_COLOR = COLORS.COLOR_255
 export const DEFAULT_TEXT_ALIGN = TextAlign.Left
-export const DEFAULT_BACKGROUND_COLOR = ANSI_BLACK
+export const DEFAULT_BACKGROUND_COLOR = COLORS.COLOR_16
 export const DEFAULT_STYLE = {
   textAlign: DEFAULT_TEXT_ALIGN,
   color: DEFAULT_COLOR,
@@ -42,9 +43,9 @@ export abstract class Widget extends EventEmitter {
   protected ui: UI
   protected style: Style
   protected position: Position
-  protected width: number
-  protected height: number
 
+  protected _width: number
+  protected _height: number
   protected _isFocused: boolean = false
 
   constructor(args: WidgetArgs) {
@@ -52,8 +53,8 @@ export abstract class Widget extends EventEmitter {
 
     const { ui, width, height, style, position } = args
 
-    this.width = width || DEFAULT_WIDTH
-    this.height = height || DEFAULT_HEIGHT
+    this._width = width || DEFAULT_WIDTH
+    this._height = height || DEFAULT_HEIGHT
     this.style = _merge({}, DEFAULT_STYLE, style)
     this.position = _merge({}, DEFAULT_POSITION, position)
 
@@ -72,8 +73,11 @@ export abstract class Widget extends EventEmitter {
       throw new Error('lines and colors must have the same length')
     }
 
+    let ccs: string[] = []
+
     lines.forEach((line: string, i: number): void => {
       const color = colors[i]
+      let ccl = ''
 
       if (typeof color === 'string') {
         this.ui.color = color
@@ -94,18 +98,17 @@ export abstract class Widget extends EventEmitter {
             if (currentColorStartIndex === -1) {
               currentColorStartIndex = j
               this.ui.color = colorStr
-
               this.ui.moveCursor({ x: x + j, y: y + i })
               this.ui.write(c)
-
-              return
-            } else if (j > currentColorStartIndex + colorLength) {
-              colorsToRender = colorsToRender.slice(1)
-              currentColorStartIndex = -1
-              currentColor = colorsToRender[0]
             } else {
               this.ui.moveCursor({ x: x + j, y: y + i })
               this.ui.write(c)
+            }
+
+            if (j > currentColorStartIndex + colorLength) {
+              colorsToRender = colorsToRender.slice(1)
+              currentColorStartIndex = -1
+              currentColor = colorsToRender[0]
 
               return
             }
@@ -132,6 +135,8 @@ export abstract class Widget extends EventEmitter {
           }
         })
       }
+
+      ccs.push(ccl)
     })
 
     this.ui.write(ANSI_RESTORE_CURSOR_POSITION)
@@ -166,9 +171,11 @@ export abstract class Widget extends EventEmitter {
     )
   }
 
-  onHover(_: TerminalMouseEvent): void {}
   onHoverEnd(_: TerminalMouseEvent): void {}
   onHoverStart(_: TerminalMouseEvent): void {}
+
+  onClickEnd(_: TerminalMouseEvent): void {}
+  onClickStart(_: TerminalMouseEvent): void {}
 
   get borderColor(): string {
     return this.style.borderColor ?? DEFAULT_BORDER_COLOR
@@ -180,6 +187,14 @@ export abstract class Widget extends EventEmitter {
 
   get color(): string {
     return this.style.color ?? DEFAULT_COLOR
+  }
+
+  get width(): number {
+    return this._width
+  }
+
+  get height(): number {
+    return this._height
   }
 
   abstract get renderableContent(): WidgetRenderableContent

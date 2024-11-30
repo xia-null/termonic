@@ -1,9 +1,9 @@
 import os from 'os'
 import _merge from 'lodash/merge'
 
+import { COLORS } from '../colors'
 import { TerminalMouseEvent, TextAlign } from '../types'
-import { ANSI_BLACK, ANSI_GREEN, ANSI_WHITE, ANSI_YELLOW } from '../ansi'
-import { DEFAULT_CONTENT as DEFAULT_BOX_CONTENT, Box, type BoxArgs } from './box'
+import { DEFAULT_BOX_CONTENT, Box, type BoxArgs } from './box'
 
 export enum ButtonType {
   Solid = 'SOLID',
@@ -20,9 +20,13 @@ const { EOL } = os
 const PADDING_X = 5
 const PADDING_Y = 3
 
-export const DEFAULT_DISABLED = false
-export const DEFAULT_TYPE = ButtonType.Solid
-export const DEFAULT_TEXT_ALIGN = TextAlign.Center
+export const DEFAULT_BUTTON_DISABLED = false
+export const DEFAULT_BUTTON_TYPE = ButtonType.Solid
+export const DEFAULT_BUTTON_TEXT_ALIGN = TextAlign.Center
+
+export const DEFAULT_BUTTON_COLOR = COLORS.COLOR_255
+export const DEFAULT_BUTTON_BORDER_COLOR = COLORS.COLOR_40
+export const DEFAULT_BUTTON_BACKGROUND_COLOR = COLORS.COLOR_16
 
 export class Button extends Box {
   protected disabled: boolean
@@ -44,9 +48,12 @@ export class Button extends Box {
         : Math.max(height, contentHeight),
 
       style: {
-        ...(otherArgs.style ?? {}),
+        color: DEFAULT_BUTTON_COLOR,
+        textAlign: DEFAULT_BUTTON_TEXT_ALIGN,
+        borderColor: DEFAULT_BUTTON_BORDER_COLOR,
+        backgroundColor: DEFAULT_BUTTON_BACKGROUND_COLOR,
 
-        textAlign: DEFAULT_TEXT_ALIGN,
+        ...(otherArgs.style ?? {}),
       },
 
       ...otherArgs,
@@ -54,24 +61,48 @@ export class Button extends Box {
 
     const { disabled, type } = args
 
-    this.type = type ?? DEFAULT_TYPE
-    this.disabled = disabled ?? DEFAULT_DISABLED
+    this.type = type ?? DEFAULT_BUTTON_TYPE
+    this.disabled = disabled ?? DEFAULT_BUTTON_DISABLED
+  }
+
+  setStyleHovered(): void {
+    this.style.backgroundColor = this.disabled
+      ? COLORS.COLOR_11
+      : COLORS.COLOR_255
+
+    this.style.borderColor = COLORS.COLOR_11
+    this.style.color = COLORS.COLOR_16
+  }
+
+  setStyleDefault(): void {
+    this.style.backgroundColor = COLORS.COLOR_16
+    this.style.borderColor = COLORS.COLOR_40
+    this.style.color = COLORS.COLOR_255
+  }
+
+  setStyleClicked(): void {
+    this.style.color = COLORS.COLOR_16
+    this.style.borderColor = COLORS.COLOR_255
+    this.style.backgroundColor = COLORS.COLOR_240
   }
 
   onHoverStart(_: TerminalMouseEvent): void {
-    this.style.backgroundColor = this.disabled
-      ? ANSI_YELLOW
-      : ANSI_WHITE
-
-    this.style.borderColor = ANSI_YELLOW
-    this.style.color = ANSI_BLACK
+    this.setStyleHovered()
     this.render()
   }
 
   onHoverEnd(_: TerminalMouseEvent): void {
-    this.style.backgroundColor = ANSI_BLACK
-    this.style.borderColor = ANSI_GREEN
-    this.style.color = ANSI_WHITE
+    this.setStyleDefault()
+    this.render()
+  }
+
+  onClickStart(_: TerminalMouseEvent): void {
+    this.setStyleClicked()
+    this.render()
+  }
+
+  onClickEnd(_: TerminalMouseEvent): void {
+    this.setStyleDefault()
     this.render()
   }
 }

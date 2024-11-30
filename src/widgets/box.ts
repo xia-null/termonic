@@ -1,8 +1,9 @@
 import os from 'os'
 import _merge from 'lodash/merge'
 
+import { COLORS } from '../colors'
 import { padding } from '../utils'
-import { type Position, TextAlign } from '../types'
+import { TextAlign, type Position } from '../types'
 import { Widget, type WidgetRenderableContent, type WidgetArgs, type WidgetRenderableContentColor } from '../widget'
 
 export interface BoxArgs extends WidgetArgs {
@@ -11,19 +12,32 @@ export interface BoxArgs extends WidgetArgs {
 
 const { EOL } = os
 
-export const DEFAULT_CONTENT = ''
+export const DEFAULT_BOX_CONTENT = ''
+export const DEFAULT_BOX_COLOR = COLORS.COLOR_224
+export const DEFAULT_BOX_BORDER_COLOR = COLORS.COLOR_14
+export const DEFAULT_BOX_BACKGROUND_COLOR = COLORS.COLOR_16
 
 export class Box extends Widget {
-  public content: string
+  private _content: string
 
-  protected scrollPosition: Position = { x: 0, y: 0 }
+  public scroll: Position = { x: 0, y: 0 }
 
   constructor(options: BoxArgs) {
-    super(options)
+    super({
+      ...options,
+
+      style: {
+        color: DEFAULT_BOX_COLOR,
+        borderColor: DEFAULT_BOX_BORDER_COLOR,
+        backgroundColor: DEFAULT_BOX_BACKGROUND_COLOR,
+
+        ...(options.style ?? {}),
+      }
+    })
 
     const { content } = options
 
-    this.content = content || DEFAULT_CONTENT
+    this._content = content || DEFAULT_BOX_CONTENT
   }
 
   get renderableContent(): WidgetRenderableContent {
@@ -38,7 +52,7 @@ export class Box extends Widget {
 
         colors.push(this.borderColor)
       } else {
-        const content = (visibleContentLines[i - 1] ?? '').trimEnd()
+        const content = visibleContentLines[i - 1] ?? ''
 
         if (this.style.textAlign === TextAlign.Center) {
           const paddingWidth = (this.width - content.length - 2) / 2
@@ -88,29 +102,35 @@ export class Box extends Widget {
     return this.height - 2
   }
 
+  set content(content: string) {
+    this._content = content
+  }
+
+  get content(): string {
+    return this._content
+  }
+
   visibleContentLines(): string[] {
     const {
-      x: scrollX,
-      y: scrollY,
-    } = this.scrollPosition
+      x: rawScrollX = 0,
+      y: rawScrollY = 0,
+    } = this.scroll
 
-    const lines: string[] = []
-    const contentLines = this.content.split(EOL).slice(scrollY, scrollY + this.contentHeight)
+    const scrollX = Math.min(this.contentWidth, rawScrollX)
+    const scrollY = Math.min(this.contentHeight, rawScrollY)
 
-    contentLines.forEach((line: string): void => {
+    const allContentLines = this._content.split(EOL)
+    const contentLines = allContentLines.slice(scrollY, Math.min(allContentLines.length - 1, scrollY + this.contentHeight))
+
+    return contentLines.map((line: string): string => {
       const trimmedLine = line.trimEnd()
-      const visibileTrimmedLine = trimmedLine
-        .split('')
-        .slice(scrollX, Math.min(this.contentWidth - scrollX, trimmedLine.length - scrollX))
-        .join('')
+      const visibileTrimmedLine = trimmedLine.slice(scrollX, Math.min(this.contentWidth - scrollX, trimmedLine.length - scrollX))
 
       if (scrollX === 0) {
-        lines.push(visibileTrimmedLine)
+        return visibileTrimmedLine
       } else {
-        lines.push(`${padding(scrollX)}${visibileTrimmedLine}`)
+        return `${padding(scrollX)}${visibileTrimmedLine}`
       }
     })
-
-    return lines
   }
 }

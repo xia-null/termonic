@@ -1,9 +1,9 @@
 import os from 'os'
 import readline from 'readline'
 
+import { COLORS } from '../colors'
 import { Box, type BoxArgs } from './box'
 import { TerminalKeyEvent } from '../types'
-import { ANSI_BLUE, ANSI_WHITE } from '../ansi'
 
 export interface TextAreaArgs extends BoxArgs {
   terminationKeyNames?: string[]
@@ -38,7 +38,6 @@ export class TextArea extends Box {
     super.focus()
 
     if (this.stopReadingCb === null) {
-      // TODO: Not caught!
       this.read()
     }
   }
@@ -97,7 +96,7 @@ export class TextArea extends Box {
           ch = EOL
 
           if ((this.content.split(EOL).length + 1) > this.height - 2) {
-            this.scrollPosition.y += 1
+            this.scroll.y += 1
           }
         }
 
@@ -108,24 +107,25 @@ export class TextArea extends Box {
         } else if (name === 'BACKSPACE') {
           const lastContentChar = this.content[this.content.length - 1]
 
-          readData = readData.slice(0, -1)
+          if (readData[readData.length - 1] === lastContentChar) {
+            readData = readData.slice(0, -1)
+          }
+
           this.content = this.content.slice(0, -1)
 
-          if (lastContentChar === EOL && this.scrollPosition.y > 0) {
-            this.scrollPosition.y -= 1
+          if (lastContentChar === EOL && this.scroll.y > 0) {
+            this.scroll.y -= 1
           }
 
         // See https://github.com/xia-null/reblessed/blob/master/src/lib/widgets/textarea.js#L247
         } else if (ch && !/^[\x00-\x08\x0b-\x0c\x0e-\x1f\x7f]$/.test(ch)) {
           const lastContentLine = this.content.split(EOL).pop() ?? ''
-          const lastContentChar = lastContentLine[lastContentLine.length - 1]
 
           if ((lastContentLine + ch).length > this.contentWidth) {
-            readData += EOL
             this.content += EOL
 
-            if (lastContentChar === EOL && this.scrollPosition.y > 0) {
-              this.scrollPosition.y += 1
+            if (ch === EOL && this.scroll.y > 0) {
+              this.scroll.y += 1
             }
           }
 
@@ -149,6 +149,10 @@ export class TextArea extends Box {
   }
 
   get borderColor(): string {
-    return this.isFocused ? ANSI_BLUE : ANSI_WHITE
+    return this.isFocused ? COLORS.COLOR_40 : COLORS.COLOR_8
+  }
+
+  get color(): string {
+    return this.isFocused ? COLORS.COLOR_255 : COLORS.COLOR_8
   }
 }
