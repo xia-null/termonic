@@ -27,5 +27,5 @@ export enum TerminalMouseEventName {
   MouseOtherButtonReleased = 'MOUSE_OTHER_BUTTON_RELEASED',
   MouseWheelUp = 'MOUSE_WHEEL_UP',
   MouseWheelDown = 'MOUSE_WHEEL_DOWN',
-  MouseMotion = 'MOUSE_MOTION',
+  MouseMotion = 'MOUSE_MOTION'
 }

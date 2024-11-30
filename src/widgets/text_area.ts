@@ -9,14 +9,15 @@ export interface TextAreaArgs extends BoxArgs {
   terminationKeyNames?: string[]
 }
 
-export type TextAreaReadCallback = (name: string, matches: string[], data: TerminalKeyEvent) => void
+export type TextAreaReadCallback = (
+  name: string,
+  matches: string[],
+  data: TerminalKeyEvent
+) => void
 
 readline.emitKeypressEvents(process.stdin)
 
-export const DEFAULT_TERMINATION_KEY_NAMES: string[] = [
-  'CTRL_C',
-  'ESCAPE',
-]
+export const DEFAULT_TERMINATION_KEY_NAMES: string[] = ['CTRL_C', 'ESCAPE']
 
 const { EOL } = os
 const { stdin } = process
@@ -31,7 +32,8 @@ export class TextArea extends Box {
 
     const { terminationKeyNames } = args
 
-    this.terminationKeyNames = terminationKeyNames ?? DEFAULT_TERMINATION_KEY_NAMES
+    this.terminationKeyNames =
+      terminationKeyNames ?? DEFAULT_TERMINATION_KEY_NAMES
   }
 
   focus(): void {
@@ -63,7 +65,10 @@ export class TextArea extends Box {
 
       this.ui.moveCursor({
         x: this.position.x + 1 + lastContentLine.length,
-        y: this.position.y + 1 + Math.min(this.height - 3, contentLines.length - 1),
+        y:
+          this.position.y +
+          1 +
+          Math.min(this.height - 3, contentLines.length - 1)
       })
     }
 
@@ -91,7 +96,11 @@ export class TextArea extends Box {
         this.focus()
       }
 
-      const keypressEventHandler = (name: string, matches: string[], data: TerminalKeyEvent): void => {
+      const keypressEventHandler = (
+        name: string,
+        matches: string[],
+        data: TerminalKeyEvent
+      ): void => {
         const oldContent = this.content
 
         let ch = String.fromCharCode(data.codepoint)
@@ -99,7 +108,7 @@ export class TextArea extends Box {
         if (name === 'ENTER' || name === 'RETURN') {
           ch = EOL
 
-          if ((this.content.split(EOL).length + 1) > this.height - 2) {
+          if (this.content.split(EOL).length + 1 > this.height - 2) {
             this.scroll.y += 1
           }
         }
@@ -121,7 +130,9 @@ export class TextArea extends Box {
             this.scroll.y -= 1
           }
 
-        // See https://github.com/xia-null/reblessed/blob/master/src/lib/widgets/textarea.js#L247
+          // See https://github.com/xia-null/reblessed/blob/master/src/lib/widgets/textarea.js#L247
+          // eslint-disable-next-line no-control-regex
+          // @ts-expect-error TODO: fix
         } else if (ch && !/^[\x00-\x08\x0b-\x0c\x0e-\x1f\x7f]$/.test(ch)) {
           const lastContentLine = this.content.split(EOL).pop() ?? ''
 

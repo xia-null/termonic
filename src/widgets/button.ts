@@ -1,5 +1,4 @@
 import os from 'os'
-import _merge from 'lodash/merge'
 
 import { color } from '../utils'
 import { TerminalMouseEvent, TextAlign } from '../types'
@@ -7,7 +6,7 @@ import { DEFAULT_BOX_CONTENT, Box, type BoxArgs } from './box'
 
 export enum ButtonType {
   Solid = 'SOLID',
-  Outline = 'OUTLINE',
+  Outline = 'OUTLINE'
 }
 
 export interface ButtonArgs extends BoxArgs {
@@ -39,13 +38,15 @@ export class Button extends Box {
 
     super({
       content,
-      width: typeof width === 'undefined'
-        ? contentWidth
-        : Math.max(width, contentWidth),
+      width:
+        typeof width === 'undefined'
+          ? contentWidth
+          : Math.max(width, contentWidth),
 
-      height: typeof height === 'undefined'
-        ? contentHeight
-        : Math.max(height, contentHeight),
+      height:
+        typeof height === 'undefined'
+          ? contentHeight
+          : Math.max(height, contentHeight),
 
       style: {
         color: DEFAULT_BUTTON_COLOR,
@@ -53,10 +54,10 @@ export class Button extends Box {
         borderColor: DEFAULT_BUTTON_BORDER_COLOR,
         backgroundColor: DEFAULT_BUTTON_BACKGROUND_COLOR,
 
-        ...(otherArgs.style ?? {}),
+        ...(otherArgs.style ?? {})
       },
 
-      ...otherArgs,
+      ...otherArgs
     })
 
     const { disabled, type } = args
@@ -123,7 +124,8 @@ export class Button extends Box {
 
       if (this.isHovered) {
         this.setStyleHovered()
-      } {
+      }
+      {
         this.setStyleDefault()
       }
 

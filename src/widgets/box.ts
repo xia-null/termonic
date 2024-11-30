@@ -1,5 +1,4 @@
 import os from 'os'
-import _merge from 'lodash/merge'
 
 import { color, padding } from '../utils'
 import { TextAlign, type Position } from '../types'
@@ -30,7 +29,7 @@ export class Box extends Widget {
         borderColor: DEFAULT_BOX_BORDER_COLOR,
         backgroundColor: DEFAULT_BOX_BACKGROUND_COLOR,
 
-        ...(options.style ?? {}),
+        ...(options.style ?? {})
       }
     })
 
@@ -55,7 +54,9 @@ export class Box extends Widget {
           const paddingLeft = padding(paddingWidth)
           const paddingRight = padding(paddingWidth, true)
 
-          lines.push(`|${paddingLeft.length > 0 ? paddingLeft : ''}${content}${paddingRight.length > 0 ? paddingRight : ''}|`)
+          lines.push(
+            `|${paddingLeft.length > 0 ? paddingLeft : ''}${content}${paddingRight.length > 0 ? paddingRight : ''}|`
+          )
         } else if (this.style.textAlign === TextAlign.Right) {
           const p = padding(this.width - content.length - 2)
 
@@ -88,20 +89,23 @@ export class Box extends Widget {
   }
 
   visibleContentLines(): string[] {
-    const {
-      x: rawScrollX = 0,
-      y: rawScrollY = 0,
-    } = this.scroll
+    const { x: rawScrollX = 0, y: rawScrollY = 0 } = this.scroll
 
     const scrollX = Math.min(this.contentWidth, rawScrollX)
     const scrollY = Math.min(this.contentHeight, rawScrollY)
 
     const allContentLines = this._content.split(EOL)
-    const contentLines = allContentLines.slice(scrollY, Math.min(allContentLines.length, scrollY + this.contentHeight))
+    const contentLines = allContentLines.slice(
+      scrollY,
+      Math.min(allContentLines.length, scrollY + this.contentHeight)
+    )
 
     return contentLines.map((line: string): string => {
       const trimmedLine = line.trimEnd()
-      const visibileTrimmedLine = trimmedLine.slice(scrollX, Math.min(this.contentWidth - scrollX, trimmedLine.length - scrollX))
+      const visibileTrimmedLine = trimmedLine.slice(
+        scrollX,
+        Math.min(this.contentWidth - scrollX, trimmedLine.length - scrollX)
+      )
 
       if (scrollX === 0) {
         return visibileTrimmedLine
@@ -112,11 +116,6 @@ export class Box extends Widget {
   }
 
   isBorder(x: number, y: number): boolean {
-    return (
-      x === 0 ||
-      x === this.width - 1 ||
-      y === 0 ||
-      y === this.height - 1
-    )
+    return x === 0 || x === this.width - 1 || y === 0 || y === this.height - 1
   }
 }

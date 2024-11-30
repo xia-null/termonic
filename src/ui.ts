@@ -4,8 +4,18 @@ import { terminal } from 'terminal-kit'
 
 import { Box } from './widgets'
 import { Widget } from './widget'
-import { ANSI_CLEAR_SCREEN, ANSI_CURSOR_POSITION, ANSI_HIDE_CURSOR, ANSI_SHOW_CURSOR } from './ansi'
-import { type TerminalMouseEvent, type TerminalKeyEvent, TerminalMouseEventName, type Position } from './types'
+import {
+  ANSI_CLEAR_SCREEN,
+  ANSI_CURSOR_POSITION,
+  ANSI_HIDE_CURSOR,
+  ANSI_SHOW_CURSOR
+} from './ansi'
+import {
+  type TerminalMouseEvent,
+  type TerminalKeyEvent,
+  TerminalMouseEventName,
+  type Position
+} from './types'
 
 const { EOL } = os
 
@@ -22,76 +32,89 @@ export class UI extends EventEmitter {
     super()
 
     terminal.grabInput({ mouse: 'motion' })
-    terminal.on('key', (name: string, matches: string[], data: TerminalKeyEvent): void => {
-      if (name === 'CTRL_C') {
-        this.write(ANSI_CLEAR_SCREEN)
-        this.moveCursor()
+    terminal.on(
+      'key',
+      (name: string, matches: string[], data: TerminalKeyEvent): void => {
+        if (name === 'CTRL_C') {
+          this.write(ANSI_CLEAR_SCREEN)
+          this.moveCursor()
 
-        process.exit(0)
+          process.exit(0)
+        }
+
+        this.emit('key', name, matches, data)
       }
+    )
 
-      this.emit('key', name, matches, data)
-    })
+    terminal.on(
+      'mouse',
+      (name: TerminalMouseEventName, data: TerminalMouseEvent): void => {
+        const { x, y } = data
 
-    terminal.on('mouse', (name: TerminalMouseEventName, data: TerminalMouseEvent): void => {
-      const { x, y } = data
+        if (name === TerminalMouseEventName.MouseLeftButtonPressed) {
+          let widgetToFocus: Widget | null = null
 
-      if (name === TerminalMouseEventName.MouseLeftButtonPressed) {
-        let widgetToFocus: Widget | null = null
+          const widgetsToBlur: Widget[] = []
+          const widgetsToClick: Widget[] = []
 
-        const widgetsToBlur: Widget[] = []
-        const widgetsToClick: Widget[] = []
+          for (const widget of this.widgets) {
+            if (widget.contains({ x, y })) {
+              widgetToFocus = widget
 
-        for (const widget of this.widgets) {
-          if (widget.contains({ x, y })) {
-            widgetToFocus = widget
-
-            if (!widgetsToClick.includes(widget) && !this.clickedWidgets.includes(widget)) {
-              widgetsToClick.push(widget)
+              if (
+                !widgetsToClick.includes(widget) &&
+                !this.clickedWidgets.includes(widget)
+              ) {
+                widgetsToClick.push(widget)
+              }
+            } else if (widget.isFocused) {
+              widgetsToBlur.push(widget)
             }
-          } else if (widget.isFocused) {
-            widgetsToBlur.push(widget)
+          }
+
+          for (const widget of widgetsToClick) {
+            widget.onClickStart(data)
+
+            this.clickedWidgets.push(widget)
+          }
+
+          if (!this.clickedWidgets.includes(widgetToFocus as Widget)) {
+            if (widgetToFocus !== null) {
+              this.write(ANSI_SHOW_CURSOR)
+              widgetToFocus.focus()
+            } else {
+              this.write(ANSI_HIDE_CURSOR)
+            }
+          }
+
+          for (const widget of widgetsToBlur) {
+            widget.blur()
+          }
+        } else if (name === TerminalMouseEventName.MouseLeftButtonReleased) {
+          for (const widget of this.clickedWidgets) {
+            widget.onClickEnd(data)
+          }
+
+          this.clickedWidgets = []
+        } else if (name === TerminalMouseEventName.MouseMotion) {
+          for (const widget of this.widgets) {
+            const widgetIsTarget = widget.contains({ x, y })
+
+            if (widgetIsTarget && !widget.isHovered) {
+              widget.onHoverStart(data)
+            } else if (
+              !widgetIsTarget &&
+              widget.isHovered &&
+              !this.clickedWidgets.includes(widget)
+            ) {
+              widget.onHoverEnd(data)
+            }
           }
         }
 
-        for (const widget of widgetsToClick) {
-          widget.onClickStart(data)
-
-          this.clickedWidgets.push(widget)
-        }
-
-        if (!this.clickedWidgets.includes(widgetToFocus as Widget)) {
-          if (widgetToFocus !== null) {
-            this.write(ANSI_SHOW_CURSOR)
-            widgetToFocus.focus()
-          } else {
-            this.write(ANSI_HIDE_CURSOR)
-          }
-        }
-
-        for (const widget of widgetsToBlur) {
-          widget.blur()
-        }
-      } else if (name === TerminalMouseEventName.MouseLeftButtonReleased) {
-        for (const widget of this.clickedWidgets) {
-          widget.onClickEnd(data)
-        }
-
-        this.clickedWidgets = []
-      } else if (name === TerminalMouseEventName.MouseMotion) {
-        for (const widget of this.widgets) {
-          const widgetIsTarget = widget.contains({ x, y })
-
-          if (widgetIsTarget && !widget.isHovered) {
-            widget.onHoverStart(data)
-          } else if (!widgetIsTarget && widget.isHovered && !this.clickedWidgets.includes(widget)) {
-            widget.onHoverEnd(data)
-          }
-        }
+        this.emit('mouse', name, data)
       }
-
-      this.emit('mouse', name, data)
-    })
+    )
 
     const logBoxWidth = process.stdout.columns - 2
     const logBoxHeight = Math.min(15, process.stdout.rows)
@@ -100,7 +123,7 @@ export class UI extends EventEmitter {
       ui: this,
       position: { x: 1, y: process.stdout.rows - logBoxHeight - 2 },
       width: logBoxWidth,
-      height: logBoxHeight,
+      height: logBoxHeight
     })
   }
 
@@ -113,7 +136,7 @@ export class UI extends EventEmitter {
   }
 
   clear(): void {
-    // this.write(ANSI_CLEAR_SCREEN)
+    this.write(ANSI_CLEAR_SCREEN)
   }
 
   render(clear?: boolean): void {
@@ -148,7 +171,9 @@ export class UI extends EventEmitter {
   }
 
   onWidgetBlur(): void {
-    const focusedWidget = this.widgets.find((widget: Widget): boolean => widget.isFocused)
+    const focusedWidget = this.widgets.find(
+      (widget: Widget): boolean => widget.isFocused
+    )
 
     if (typeof focusedWidget === 'undefined') {
       this.write(ANSI_HIDE_CURSOR)
@@ -172,4 +197,3 @@ export class UI extends EventEmitter {
     return this.currentColor
   }
 }
-

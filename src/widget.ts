@@ -4,7 +4,12 @@ import { EventEmitter } from 'events'
 import { UI } from './ui'
 import { color } from './utils'
 import { ANSI_RESTORE_CURSOR_POSITION, ANSI_SAVE_CURSOR_POSITION } from './ansi'
-import { type Position, type Style, TerminalMouseEvent, TextAlign } from './types'
+import {
+  type Position,
+  type Style,
+  TerminalMouseEvent,
+  TextAlign
+} from './types'
 
 export interface WidgetArgs {
   ui: UI
@@ -18,7 +23,7 @@ export const DEFAULT_WIDTH = 0
 export const DEFAULT_HEIGHT = 0
 export const DEFAULT_POSITION = {
   x: 0,
-  y: 0,
+  y: 0
 }
 
 export const DEFAULT_COLOR = color(254, 254, 254)
@@ -29,7 +34,7 @@ export const DEFAULT_STYLE = {
   textAlign: DEFAULT_TEXT_ALIGN,
   color: DEFAULT_COLOR,
   borderColor: DEFAULT_BORDER_COLOR,
-  backroundColor: DEFAULT_BACKGROUND_COLOR,
+  backroundColor: DEFAULT_BACKGROUND_COLOR
 }
 
 export abstract class Widget extends EventEmitter {
@@ -80,7 +85,7 @@ export abstract class Widget extends EventEmitter {
 
       this.ui.moveCursor({
         x: this.position.x,
-        y: this.position.y + i + 1,
+        y: this.position.y + i + 1
       })
     })
 
@@ -109,10 +114,10 @@ export abstract class Widget extends EventEmitter {
 
   contains(position: Position): boolean {
     return (
-      position.x >= this.position.x
-      && position.x < this.position.x + this.width
-      && position.y >= this.position.y
-      && position.y < this.position.y + this.height
+      position.x >= this.position.x &&
+      position.x < this.position.x + this.width &&
+      position.y >= this.position.y &&
+      position.y < this.position.y + this.height
     )
   }
 

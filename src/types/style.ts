@@ -4,7 +4,7 @@ export enum TextAlign {
   Center = 'center',
   Justify = 'justify',
   Start = 'start',
-  End = 'end',
+  End = 'end'
 }
 
 export interface Style {

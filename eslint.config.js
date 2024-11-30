@@ -7,7 +7,8 @@ export default [
   {
     files: ["**/*.{js,mjs,cjs,ts}"]
   }, {
-    languageOptions: { globals: globals.browser }
+    languageOptions: { globals: globals.browser },
+    rules: { "no-control-regex": 0 }
   },
   pluginJs.configs.recommended,
   ...tseslint.configs.recommended,

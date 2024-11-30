@@ -31,9 +31,8 @@ export const ANSI_CURSOR_RIGHT = '\x1b[C'
 export const ANSI_CURSOR_LEFT = '\x1b[D'
 export const ANSI_CURSOR_NEXT_LINE = '\x1b[E'
 export const ANSI_CURSOR_PREVIOUS_LINE = '\x1b[F'
-export const ANSI_CURSOR_POSITION = (x: number, y: number): string => (
+export const ANSI_CURSOR_POSITION = (x: number, y: number): string =>
   `\x1b[${y + 1};${x + 1}H`
-)
 
 export const ANSI_CLEAR_SCREEN = '\x1b[2J'
 export const ANSI_CLEAR_LINE = '\x1b[2K'

@@ -41,4 +41,3 @@ const ANSI_INVERSE = '\x1b[7m'
 const ANSI_HIDDEN = '\x1b[8m'
 const ANSI_STRIKETHROUGH = '\x1b[9m'
 */
-

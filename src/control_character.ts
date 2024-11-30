@@ -23,7 +23,6 @@ export enum ControlCharacter {
   NegativeAcknowledge = '\u0015',
   SynchronousIdle = '\u0016',
   EndOfBlock = '\u0017',
-  Cancel = '\u0018',
   EndOfMedium = '\u0019',
   Substitute = '\u001A',
   Escape = '\u001B',
@@ -31,12 +30,5 @@ export enum ControlCharacter {
   GroupSeparator = '\u001D',
   RecordSeparator = '\u001E',
   UnitSeparator = '\u001F',
-
   CarriageReturnLineFeed = '\u000D\u000A',
-  EscapeSequence = '\x1b',
-
-  CtrlC = '\u0003',
-  CtrlG = '\u0007',
-  CtrlD = '\u0004',
-  CtrlZ = '\u001A',
 }
