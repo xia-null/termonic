@@ -113,7 +113,7 @@ export class UI extends EventEmitter {
   }
 
   clear(): void {
-    this.write(ANSI_CLEAR_SCREEN)
+    // this.write(ANSI_CLEAR_SCREEN)
   }
 
   render(clear?: boolean): void {

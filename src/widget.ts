@@ -35,7 +35,8 @@ export const DEFAULT_STYLE = {
 export abstract class Widget extends EventEmitter {
   protected ui: UI
   protected style: Style
-  protected position: Position
+
+  public position: Position
 
   protected _width: number
   protected _height: number
@@ -115,21 +116,25 @@ export abstract class Widget extends EventEmitter {
     )
   }
 
-  onHoverEnd(_: TerminalMouseEvent): void {
+  onHoverEnd(data: TerminalMouseEvent): void {
     this._isHovered = false
+    this.emit('hover:end', data)
   }
 
-  onHoverStart(_: TerminalMouseEvent): void {
+  onHoverStart(data: TerminalMouseEvent): void {
     this._isHovered = true
+    this.emit('hover:start', data)
   }
 
-  onClickEnd(_: TerminalMouseEvent): void {
+  onClickEnd(data: TerminalMouseEvent): void {
     this._isClicked = false
+    this.emit('click:end', data)
   }
 
-  onClickStart(_: TerminalMouseEvent): void {
+  onClickStart(data: TerminalMouseEvent): void {
     this._isClicked = true
     this.focus()
+    this.emit('click:start', data)
   }
 
   get borderColor(): string {
