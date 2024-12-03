@@ -79,7 +79,7 @@ const run = async (): Promise<void> => {
   const dirExpansionFlags: boolean[] = directories.map(() => false)
 
   fileListBox.on(
-    'click:start',
+    'click',
     async (data: TerminalMouseEvent): Promise<void> => {
       if (
         data.x < fileListBox.position.x ||
