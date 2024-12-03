@@ -2,7 +2,6 @@ import os from 'os'
 import { EventEmitter } from 'events'
 import { terminal } from 'terminal-kit'
 
-import { Box } from './widgets'
 import { Widget } from './widget'
 import {
   ANSI_CLEAR_SCREEN,
@@ -10,6 +9,7 @@ import {
   ANSI_HIDE_CURSOR,
   ANSI_SHOW_CURSOR
 } from './ansi'
+
 import {
   type TerminalMouseEvent,
   type TerminalKeyEvent,
@@ -25,8 +25,6 @@ export class UI extends EventEmitter {
   protected widgets: Widget[] = []
   protected hoveredWidgets: Widget[] = []
   protected clickedWidgets: Widget[] = []
-
-  public logBox: Box | null = null
 
   constructor(protected stream: NodeJS.WriteStream) {
     super()
@@ -78,13 +76,8 @@ export class UI extends EventEmitter {
             this.clickedWidgets.push(widget)
           }
 
-          if (!this.clickedWidgets.includes(widgetToFocus as Widget)) {
-            if (widgetToFocus !== null) {
-              this.write(ANSI_SHOW_CURSOR)
-              widgetToFocus.focus()
-            } else {
-              this.write(ANSI_HIDE_CURSOR)
-            }
+          if (widgetToFocus !== null && !this.clickedWidgets.includes(widgetToFocus as Widget)) {
+            widgetToFocus.focus()
           }
 
           for (const widget of widgetsToBlur) {
@@ -115,16 +108,6 @@ export class UI extends EventEmitter {
         this.emit('mouse', name, data)
       }
     )
-
-    const logBoxWidth = process.stdout.columns - 2
-    const logBoxHeight = Math.min(15, process.stdout.rows)
-
-    this.logBox = new Box({
-      ui: this,
-      position: { x: 1, y: process.stdout.rows - logBoxHeight - 2 },
-      width: logBoxWidth,
-      height: logBoxHeight
-    })
   }
 
   write(content: string): void {
@@ -157,9 +140,6 @@ export class UI extends EventEmitter {
 
   addWidget(widget: Widget): void {
     this.widgets.push(widget)
-
-    widget.on('focus', this.onWidgetFocus.bind(this))
-    widget.on('blur', this.onWidgetBlur.bind(this))
   }
 
   removeWidget(widget: Widget): void {
@@ -168,27 +148,6 @@ export class UI extends EventEmitter {
     }
 
     this.widgets = this.widgets.filter((w: Widget): boolean => w !== widget)
-  }
-
-  onWidgetFocus(): void {
-    this.write(ANSI_SHOW_CURSOR)
-  }
-
-  onWidgetBlur(): void {
-    const focusedWidget = this.widgets.find(
-      (widget: Widget): boolean => widget.isFocused
-    )
-
-    if (typeof focusedWidget === 'undefined') {
-      this.write(ANSI_HIDE_CURSOR)
-    }
-  }
-
-  log(message: string): void {
-    if (this.logBox !== null) {
-      this.logBox.content = `${this.logBox.content}${message}${EOL}`
-      this.logBox.render()
-    }
   }
 
   set color(currentColor: string) {
@@ -205,5 +164,13 @@ export class UI extends EventEmitter {
     this.widgets.forEach((widget: Widget): void => {
       this.removeWidget(widget)
     })
+  }
+
+  showCursor(): void {
+    this.write(ANSI_SHOW_CURSOR)
+  }
+
+  hideCursor(): void {
+    this.write(ANSI_HIDE_CURSOR)
   }
 }

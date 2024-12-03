@@ -1,8 +1,8 @@
 import os from 'os'
 
 import { color } from '../utils'
-import { TerminalMouseEvent, TextAlign } from '../types'
 import { DEFAULT_BOX_CONTENT, Box, type BoxArgs } from './box'
+import { TerminalMouseEvent, TextAlign, VerticalAlign } from '../types'
 
 export enum ButtonType {
   Solid = 'SOLID',
@@ -16,12 +16,13 @@ export interface ButtonArgs extends BoxArgs {
 
 const { EOL } = os
 
-const PADDING_X = 5
-const PADDING_Y = 3
+const PADDING_X = 3
+const PADDING_Y = 2
 
 export const DEFAULT_BUTTON_DISABLED = false
 export const DEFAULT_BUTTON_TYPE = ButtonType.Solid
 export const DEFAULT_BUTTON_TEXT_ALIGN = TextAlign.Center
+export const DEFAULT_BUTTON_VERTICAL_ALIGN = VerticalAlign.Center
 
 export const DEFAULT_BUTTON_COLOR = color(220, 220, 220)
 export const DEFAULT_BUTTON_BORDER_COLOR = color(100, 100, 254)
@@ -51,6 +52,7 @@ export class Button extends Box {
       style: {
         color: DEFAULT_BUTTON_COLOR,
         textAlign: DEFAULT_BUTTON_TEXT_ALIGN,
+        verticalAlign: DEFAULT_BUTTON_VERTICAL_ALIGN,
         borderColor: DEFAULT_BUTTON_BORDER_COLOR,
         backgroundColor: DEFAULT_BUTTON_BACKGROUND_COLOR,
 
@@ -124,8 +126,7 @@ export class Button extends Box {
 
       if (this.isHovered) {
         this.setStyleHovered()
-      }
-      {
+      } else {
         this.setStyleDefault()
       }
 

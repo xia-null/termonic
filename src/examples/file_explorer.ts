@@ -2,9 +2,7 @@ import path from 'path'
 import { EOL } from 'os'
 import { promises as fs, Dirent } from 'fs'
 
-import { UI } from '../ui'
-import { Button, Box } from '../widgets'
-import { TerminalMouseEvent } from 'types'
+import { UI, Button, Box, type TerminalMouseEvent } from '../'
 
 const run = async (): Promise<void> => {
   const ui = new UI(process.stdout)

@@ -1,8 +1,8 @@
 import os from 'os'
 
 import { color, padding } from '../utils'
-import { TextAlign, type Position } from '../types'
 import { Widget, type WidgetArgs } from '../widget'
+import { TextAlign, VerticalAlign, type Position } from '../types'
 
 export interface BoxArgs extends WidgetArgs {
   content?: string
@@ -40,34 +40,63 @@ export class Box extends Widget {
 
   get renderableContent(): string[] {
     const lines: string[] = []
-
     const visibleContentLines = this.visibleContentLines()
+    const totalPaddingHeight = this.height - visibleContentLines.length - 2
 
-    for (let i = 0; i < this.height; i += 1) {
-      if (i === 0 || i === this.height - 1) {
-        lines.push('─'.repeat(this.width))
+    // Add top border
+    lines.push('─'.repeat(this.width))
+
+    // Calculate padding based on vertical alignment
+    let paddingTop = 0
+    let paddingBottom = 0
+
+    switch (this._style.verticalAlign) {
+      case VerticalAlign.Center:
+        paddingTop = Math.floor(totalPaddingHeight / 2)
+        paddingBottom = totalPaddingHeight - paddingTop
+        break
+      case VerticalAlign.Bottom:
+        paddingTop = totalPaddingHeight
+        paddingBottom = 0
+        break
+      case VerticalAlign.Top:
+      default:
+        paddingTop = 0
+        paddingBottom = totalPaddingHeight
+        break
+    }
+
+    // Add top padding
+    for (let i = 0; i < paddingTop; i++) {
+      lines.push(`|${' '.repeat(this.width - 2)}|`)
+    }
+
+    // Add content lines with horizontal alignment
+    for (const content of visibleContentLines) {
+      if (this._style.textAlign === TextAlign.Center) {
+        const paddingWidth = (this.width - content.length - 2) / 2
+        const paddingLeft = padding(paddingWidth)
+        const paddingRight = padding(paddingWidth, true)
+
+        lines.push(
+          `|${paddingLeft.length > 0 ? paddingLeft : ''}${content}${paddingRight.length > 0 ? paddingRight : ''}|`
+        )
+      } else if (this._style.textAlign === TextAlign.Right) {
+        const p = padding(this.width - content.length - 2)
+        lines.push(`|${p}${content}|`)
       } else {
-        const content = visibleContentLines[i - 1] ?? ''
-
-        if (this._style.textAlign === TextAlign.Center) {
-          const paddingWidth = (this.width - content.length - 2) / 2
-          const paddingLeft = padding(paddingWidth)
-          const paddingRight = padding(paddingWidth, true)
-
-          lines.push(
-            `|${paddingLeft.length > 0 ? paddingLeft : ''}${content}${paddingRight.length > 0 ? paddingRight : ''}|`
-          )
-        } else if (this._style.textAlign === TextAlign.Right) {
-          const p = padding(this.width - content.length - 2)
-
-          lines.push(`|${p}${content}|`)
-        } else {
-          const p = padding(this.width - content.length - 2)
-
-          lines.push(`|${content}${p}|`)
-        }
+        const p = padding(this.width - content.length - 2)
+        lines.push(`|${content}${p}|`)
       }
     }
+
+    // Add bottom padding
+    for (let i = 0; i < paddingBottom; i++) {
+      lines.push(`|${' '.repeat(this.width - 2)}|`)
+    }
+
+    // Add bottom border
+    lines.push('─'.repeat(this.width))
 
     return lines
   }
@@ -89,30 +118,17 @@ export class Box extends Widget {
   }
 
   visibleContentLines(): string[] {
-    const { x: rawScrollX = 0, y: rawScrollY = 0 } = this.scroll
+    const { x: scrollX = 0, y: scrollY = 0 } = this.scroll
+    const lines = this._content.split(EOL)
 
-    const scrollX = Math.min(this.contentWidth, rawScrollX)
-    const scrollY = Math.min(this.contentHeight, rawScrollY)
-
-    const allContentLines = this._content.split(EOL)
-    const contentLines = allContentLines.slice(
-      scrollY,
-      Math.min(allContentLines.length, scrollY + this.contentHeight)
-    )
-
-    return contentLines.map((line: string): string => {
-      const trimmedLine = line.trimEnd()
-      const visibileTrimmedLine = trimmedLine.slice(
-        scrollX,
-        Math.min(this.contentWidth - scrollX, trimmedLine.length - scrollX)
-      )
-
-      if (scrollX === 0) {
-        return visibileTrimmedLine
-      } else {
-        return `${padding(scrollX)}${visibileTrimmedLine}`
-      }
-    })
+    return lines
+      .slice(scrollY, Math.min(scrollY + this.contentHeight, lines.length))
+      .map((line: string): string => (
+        line.slice(
+          scrollX,
+          Math.min(scrollX + this.contentWidth, line.length)
+        )
+      ))
   }
 
   isBorder(x: number, y: number): boolean {

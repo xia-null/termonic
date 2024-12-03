@@ -7,9 +7,16 @@ export enum TextAlign {
   End = 'end'
 }
 
+export enum VerticalAlign {
+  Top = 'top',
+  Center = 'center',
+  Bottom = 'bottom'
+}
+
 export interface Style {
   color?: string
   borderColor?: string
   textAlign?: TextAlign
+  verticalAlign?: VerticalAlign
   backgroundColor?: string
 }
