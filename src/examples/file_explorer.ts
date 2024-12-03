@@ -78,44 +78,41 @@ const run = async (): Promise<void> => {
   )
   const dirExpansionFlags: boolean[] = directories.map(() => false)
 
-  fileListBox.on(
-    'click',
-    async (data: TerminalMouseEvent): Promise<void> => {
-      if (
-        data.x < fileListBox.position.x ||
-        data.x > fileListBox.position.x + fileListBox.width
-      ) {
-        return
-      }
-
-      const lines = fileListBox.content.split(EOL)
-      const lineN = data.y - fileListBox.position.y - 2
-
-      if (lineN < 0 || lineN > lines.length - 1) {
-        return
-      }
-
-      const fileName = lines[lineN].trim()
-      const dirN = directories
-        .map(({ name }: Dirent): string => name)
-        .indexOf(fileName)
-
-      if (dirN > -1) {
-        dirExpansionFlags[dirN] = !dirExpansionFlags[dirN]
-
-        fileListBox.content = await getFileListBoxContent()
-        fileListBox.render()
-      } else if (
-        (await fs.stat(path.join(__dirname, '../', fileName))).isFile()
-      ) {
-        fileContentsBox.content = await fs.readFile(
-          path.join(__dirname, '../', fileName),
-          'utf-8'
-        )
-        fileContentsBox.render()
-      }
+  fileListBox.on('click', async (data: TerminalMouseEvent): Promise<void> => {
+    if (
+      data.x < fileListBox.position.x ||
+      data.x > fileListBox.position.x + fileListBox.width
+    ) {
+      return
     }
-  )
+
+    const lines = fileListBox.content.split(EOL)
+    const lineN = data.y - fileListBox.position.y - 2
+
+    if (lineN < 0 || lineN > lines.length - 1) {
+      return
+    }
+
+    const fileName = lines[lineN].trim()
+    const dirN = directories
+      .map(({ name }: Dirent): string => name)
+      .indexOf(fileName)
+
+    if (dirN > -1) {
+      dirExpansionFlags[dirN] = !dirExpansionFlags[dirN]
+
+      fileListBox.content = await getFileListBoxContent()
+      fileListBox.render()
+    } else if (
+      (await fs.stat(path.join(__dirname, '../', fileName))).isFile()
+    ) {
+      fileContentsBox.content = await fs.readFile(
+        path.join(__dirname, '../', fileName),
+        'utf-8'
+      )
+      fileContentsBox.render()
+    }
+  })
 
   fileListBox.content = await getFileListBoxContent()
   fileContentsBox.content = await fs.readFile(

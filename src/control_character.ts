@@ -30,5 +30,5 @@ export enum ControlCharacter {
   GroupSeparator = '\u001D',
   RecordSeparator = '\u001E',
   UnitSeparator = '\u001F',
-  CarriageReturnLineFeed = '\u000D\u000A',
+  CarriageReturnLineFeed = '\u000D\u000A'
 }
