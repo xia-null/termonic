@@ -49,7 +49,7 @@ export class Box extends Widget {
       } else {
         const content = visibleContentLines[i - 1] ?? ''
 
-        if (this.style.textAlign === TextAlign.Center) {
+        if (this._style.textAlign === TextAlign.Center) {
           const paddingWidth = (this.width - content.length - 2) / 2
           const paddingLeft = padding(paddingWidth)
           const paddingRight = padding(paddingWidth, true)
@@ -57,7 +57,7 @@ export class Box extends Widget {
           lines.push(
             `|${paddingLeft.length > 0 ? paddingLeft : ''}${content}${paddingRight.length > 0 ? paddingRight : ''}|`
           )
-        } else if (this.style.textAlign === TextAlign.Right) {
+        } else if (this._style.textAlign === TextAlign.Right) {
           const p = padding(this.width - content.length - 2)
 
           lines.push(`|${p}${content}|`)

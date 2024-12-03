@@ -67,24 +67,24 @@ export class Button extends Box {
   }
 
   setStyleHovered(): void {
-    this.style.backgroundColor = this.disabled
+    this._style.backgroundColor = this.disabled
       ? color(10, 10, 10)
       : color(100, 100, 100)
 
-    this.style.borderColor = color(200, 200, 254)
-    this.style.color = color(254, 254, 254)
+    this._style.borderColor = color(200, 200, 254)
+    this._style.color = color(254, 254, 254)
   }
 
   setStyleDefault(): void {
-    this.style.backgroundColor = DEFAULT_BUTTON_BACKGROUND_COLOR
-    this.style.borderColor = DEFAULT_BUTTON_BORDER_COLOR
-    this.style.color = DEFAULT_BUTTON_COLOR
+    this._style.backgroundColor = DEFAULT_BUTTON_BACKGROUND_COLOR
+    this._style.borderColor = DEFAULT_BUTTON_BORDER_COLOR
+    this._style.color = DEFAULT_BUTTON_COLOR
   }
 
   setStyleClicked(): void {
-    this.style.color = color(254, 254, 254)
-    this.style.borderColor = color(0, 200, 254)
-    this.style.backgroundColor = color(50, 50, 50)
+    this._style.color = color(254, 254, 254)
+    this._style.borderColor = color(0, 200, 254)
+    this._style.backgroundColor = color(50, 50, 50)
   }
 
   onHoverStart(data: TerminalMouseEvent): void {

@@ -39,12 +39,10 @@ export const DEFAULT_STYLE = {
 
 export abstract class Widget extends EventEmitter {
   protected ui: UI
-  protected style: Style
-
-  public position: Position
-
+  protected _style: Style
   protected _width: number
   protected _height: number
+  protected _position: Position
   protected _isFocused: boolean = false
   protected _isHovered: boolean = false
   protected _isClicked: boolean = false
@@ -56,8 +54,8 @@ export abstract class Widget extends EventEmitter {
 
     this._width = width || DEFAULT_WIDTH
     this._height = height || DEFAULT_HEIGHT
-    this.style = _merge({}, DEFAULT_STYLE, style)
-    this.position = _merge({}, DEFAULT_POSITION, position)
+    this._style = _merge({}, DEFAULT_STYLE, style)
+    this._position = _merge({}, DEFAULT_POSITION, position)
 
     this.ui = ui
     this.ui.addWidget(this)
@@ -68,24 +66,24 @@ export abstract class Widget extends EventEmitter {
 
     const lines = this.renderableContent
 
-    this.ui.moveCursor(this.position)
+    this.ui.moveCursor(this._position)
 
     lines.forEach((line: string, i: number): void => {
       line.split('').forEach((char: string, j: number): void => {
         if (char === ' ') {
-          this.ui.color = this.style.backgroundColor ?? DEFAULT_BACKGROUND_COLOR
+          this.ui.color = this.backgroundColor
         } else if (this.isBorder(j, i)) {
-          this.ui.color = this.style.borderColor ?? DEFAULT_BORDER_COLOR
+          this.ui.color = this.borderColor
         } else {
-          this.ui.color = this.style.color ?? DEFAULT_COLOR
+          this.ui.color = this.color
         }
 
         this.ui.write(char)
       })
 
       this.ui.moveCursor({
-        x: this.position.x,
-        y: this.position.y + i + 1
+        x: this._position.x,
+        y: this._position.y + i + 1
       })
     })
 
@@ -114,10 +112,10 @@ export abstract class Widget extends EventEmitter {
 
   contains(position: Position): boolean {
     return (
-      position.x >= this.position.x &&
-      position.x < this.position.x + this.width &&
-      position.y >= this.position.y &&
-      position.y < this.position.y + this.height
+      position.x >= this._position.x &&
+      position.x < this._position.x + this.width &&
+      position.y >= this._position.y &&
+      position.y < this._position.y + this.height
     )
   }
 
@@ -143,15 +141,15 @@ export abstract class Widget extends EventEmitter {
   }
 
   get borderColor(): string {
-    return this.style.borderColor ?? DEFAULT_BORDER_COLOR
+    return this._style.borderColor ?? DEFAULT_BORDER_COLOR
   }
 
   get backgroundColor(): string {
-    return this.style.backgroundColor ?? DEFAULT_BACKGROUND_COLOR
+    return this._style.backgroundColor ?? DEFAULT_BACKGROUND_COLOR
   }
 
   get color(): string {
-    return this.style.color ?? DEFAULT_COLOR
+    return this._style.color ?? DEFAULT_COLOR
   }
 
   get width(): number {
@@ -168,6 +166,14 @@ export abstract class Widget extends EventEmitter {
 
   get isClicked(): boolean {
     return this._isClicked
+  }
+
+  set position(position: Position) {
+    this._position = { ...this._position, ...position }
+  }
+
+  get position(): Position {
+    return this._position
   }
 
   abstract get renderableContent(): string[]
