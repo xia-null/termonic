@@ -89,7 +89,7 @@ const run = async (): Promise<void> => {
       }
 
       const lines = fileListBox.content.split(EOL)
-      const lineN = data.y - fileListBox.position.y - 1
+      const lineN = data.y - fileListBox.position.y - 2
 
       if (lineN < 0 || lineN > lines.length - 1) {
         return
