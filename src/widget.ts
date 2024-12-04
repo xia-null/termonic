@@ -3,38 +3,33 @@ import { EventEmitter } from 'events'
 
 import { UI } from './ui'
 import { color } from './utils'
-import { ANSI_RESTORE_CURSOR_POSITION, ANSI_SAVE_CURSOR_POSITION } from './ansi'
 import {
-  type Position,
   type Style,
-  TerminalMouseEvent,
-  TextAlign
+  type Position,
+  type TerminalMouseEvent,
+  TerminalKeyEvent,
 } from './types'
 
 export interface WidgetArgs {
   ui: UI
   width?: number
   height?: number
-  style?: Style
   position?: Position
+  style?: Style
 }
 
-export const DEFAULT_WIDTH = 0
-export const DEFAULT_HEIGHT = 0
-export const DEFAULT_POSITION = {
+export const DEFAULT_WIDGET_WIDTH = 0
+export const DEFAULT_WIDGET_HEIGHT = 0
+export const DEFAULT_WIDGET_POSITION = {
   x: 0,
   y: 0
 }
 
-export const DEFAULT_COLOR = color(254, 254, 254)
-export const DEFAULT_BORDER_COLOR = color(254, 254, 254)
-export const DEFAULT_TEXT_ALIGN = TextAlign.Left
-export const DEFAULT_BACKGROUND_COLOR = color(0, 0, 0)
-export const DEFAULT_STYLE = {
-  textAlign: DEFAULT_TEXT_ALIGN,
-  color: DEFAULT_COLOR,
-  borderColor: DEFAULT_BORDER_COLOR,
-  backroundColor: DEFAULT_BACKGROUND_COLOR
+export const DEFAULT_WIDGET_COLOR = color(254, 254, 254)
+export const DEFAULT_WIDGET_BACKGROUND_COLOR = color(0, 0, 0)
+export const DEFAULT_WIDGET_STYLE = {
+  color: DEFAULT_WIDGET_COLOR,
+  backroundColor: DEFAULT_WIDGET_BACKGROUND_COLOR
 }
 
 export abstract class Widget extends EventEmitter {
@@ -52,33 +47,22 @@ export abstract class Widget extends EventEmitter {
 
     const { ui, width, height, style, position } = args
 
-    this._width = width || DEFAULT_WIDTH
-    this._height = height || DEFAULT_HEIGHT
-    this._style = _merge({}, DEFAULT_STYLE, style)
-    this._position = _merge({}, DEFAULT_POSITION, position)
+    this._width = width || DEFAULT_WIDGET_WIDTH
+    this._height = height || DEFAULT_WIDGET_HEIGHT
+    this._style = _merge({}, DEFAULT_WIDGET_STYLE, style)
+    this._position = _merge({}, DEFAULT_WIDGET_POSITION, position)
 
     this.ui = ui
     this.ui.addWidget(this)
   }
 
   render(): void {
-    this.ui.write(ANSI_SAVE_CURSOR_POSITION)
-
-    const lines = this.renderableContent
-
+    this.ui.saveCursorPosition()
     this.ui.moveCursor(this._position)
 
-    lines.forEach((line: string, i: number): void => {
+    this.getRendered().forEach((line: string, i: number): void => {
       line.split('').forEach((char: string, j: number): void => {
-        if (char === ' ') {
-          this.ui.color = this.backgroundColor
-        } else if (this.isBorder(j, i)) {
-          this.ui.color = this.borderColor
-        } else {
-          this.ui.color = this.color
-        }
-
-        this.ui.write(char)
+        this.ui.write(char, this.getCharColor(char, j, i))
       })
 
       this.ui.moveCursor({
@@ -87,7 +71,7 @@ export abstract class Widget extends EventEmitter {
       })
     })
 
-    this.ui.write(ANSI_RESTORE_CURSOR_POSITION)
+    this.ui.restoreCursorPosition()
   }
 
   focus(): void {
@@ -111,12 +95,18 @@ export abstract class Widget extends EventEmitter {
   }
 
   contains(position: Position): boolean {
+    const { x, y } = position
+
     return (
-      position.x >= this._position.x &&
-      position.x < this._position.x + this.width &&
-      position.y >= this._position.y &&
-      position.y < this._position.y + this.height
+      x >= this._position.x &&
+      x <= this._position.x + this.width &&
+      y >= this._position.y &&
+      y <= this._position.y + this.height
     )
+  }
+
+  onHover(data: TerminalMouseEvent): void {
+    this.emit('hover', data)
   }
 
   onHoverEnd(data: TerminalMouseEvent): void {
@@ -126,7 +116,7 @@ export abstract class Widget extends EventEmitter {
 
   onHoverStart(data: TerminalMouseEvent): void {
     this._isHovered = true
-    this.emit('hover', data)
+    this.emit('hover:start', data)
   }
 
   onClickEnd(data: TerminalMouseEvent): void {
@@ -134,22 +124,29 @@ export abstract class Widget extends EventEmitter {
     this.emit('click:end', data)
   }
 
-  onClickStart(data: TerminalMouseEvent): void {
+  onClick(data: TerminalMouseEvent): void {
     this._isClicked = true
-    this.focus()
     this.emit('click', data)
   }
 
-  get borderColor(): string {
-    return this._style.borderColor ?? DEFAULT_BORDER_COLOR
+  onKey(name: string, matches: string[], data: TerminalKeyEvent): void {
+    this.emit('key', name, matches, data)
+  }
+
+  onMouseWheelUp(data: TerminalMouseEvent): void {
+    this.emit('mouse:wheel:up', data)
+  }
+
+  onMouseWheelDown(data: TerminalMouseEvent): void {
+    this.emit('mouse:wheel:down', data)
   }
 
   get backgroundColor(): string {
-    return this._style.backgroundColor ?? DEFAULT_BACKGROUND_COLOR
+    return this._style.backgroundColor ?? DEFAULT_WIDGET_BACKGROUND_COLOR
   }
 
   get color(): string {
-    return this._style.color ?? DEFAULT_COLOR
+    return this._style.color ?? DEFAULT_WIDGET_COLOR
   }
 
   get width(): number {
@@ -176,6 +173,12 @@ export abstract class Widget extends EventEmitter {
     return this._position
   }
 
-  abstract get renderableContent(): string[]
-  abstract isBorder(x: number, y: number): boolean
+  abstract getRendered(): string[]
+
+  // @ts-expect-error arguments are unused but documentation
+  getCharColor(char: string, x: number, y: number): string {
+    return char === ' '
+      ? this.backgroundColor
+      : this.color
+  }
 }

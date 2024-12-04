@@ -25,12 +25,12 @@ export const ANSI_CYAN_BACKGROUND = '\x1b[46m'
 export const ANSI_WHITE_BACKGROUND = '\x1b[47m'
 export const ANSI_DEFAULT_BACKGROUND = '\x1b[49m'
 
-export const ANSI_CURSOR_UP = '\x1b[A'
-export const ANSI_CURSOR_DOWN = '\x1b[B'
-export const ANSI_CURSOR_RIGHT = '\x1b[C'
-export const ANSI_CURSOR_LEFT = '\x1b[D'
-export const ANSI_CURSOR_NEXT_LINE = '\x1b[E'
-export const ANSI_CURSOR_PREVIOUS_LINE = '\x1b[F'
+export const ANSI_CURSOR_UP = (rows: number = 1): string => `\x1b[${rows}A`
+export const ANSI_CURSOR_DOWN = (rows: number = 1): string => `\x1b[${rows}B`
+export const ANSI_CURSOR_RIGHT = (cols: number = 1): string => `\x1b[${cols}C`
+export const ANSI_CURSOR_LEFT = (cols: number = 1): string => `\x1b[${cols}D`
+export const ANSI_CURSOR_NEXT_LINE = (lines: number = 1): string => `\x1b[${lines}E`
+export const ANSI_CURSOR_PREVIOUS_LINE = (lines: number = 1): string => `\x1b[${lines}F`
 export const ANSI_CURSOR_POSITION = (x: number, y: number): string =>
   `\x1b[${y + 1};${x + 1}H`
 
